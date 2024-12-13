@@ -1,0 +1,48 @@
+# Add reusable labels in your docker-compose.yml file(s) like this:
+x-traefik-common:
+  labels:
+    - "traefik.enable=true"
+    - "traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.regex='^/([a-z]+)$'"
+    - "traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.replacement='/$1/'"
+
+# Use by adding the following to your service:
+# labels:
+#   - "${x-traefik-common.labels}"
+#   - "traefik.http.routers.[name].middlewares=append-first-level-trailing-slash"
+#   - "traefik.http.routers.[name].rule=Host(`[host]`) && PathPrefix(`/[path]`)"
+
+services:
+  traefik:
+    container_name: traefik
+    image: traefik:v3.2
+    restart: unless-stopped
+    command:
+      - "--global.sendAnonymousUsage=false"
+      - "--api.insecure=true"
+      - "--providers.docker"
+      - "--entrypoints.traefik.address=:9000"
+      - "--entrypoints.http.address=:3000"
+      - "--providers.docker.defaultRule=Host(`{{ .ContainerName }}.localhost`)"
+      - "--providers.docker.exposedByDefault=false"
+      - "--providers.file.directory=/dynamic"
+      - "--providers.file.watch=true"
+      - "--accesslog=true"
+      - "--accesslog.fields.names.StartUTC=drop"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dynamic:/dynamic:ro
+      - ./certs:/certs:ro
+    ports:
+      - "3000:3000"
+      - "9000:9000"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100m"
+        max-file: "3"
+    environment:
+      - TZ=Europe/Stockholm
+
+networks:
+  default:
+    name: traefik
