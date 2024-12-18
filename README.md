@@ -1,5 +1,5 @@
 # A Traefik setup for local development
-A simple traefik setup for local development. Traefik is a cloud native reverse proxy and load balancer built for 
+A simple traefik setup for local development. Traefik is a cloud-native reverse proxy and load balancer built for 
 microservices and containerized workloads.
 
 ## Usage
@@ -21,6 +21,9 @@ Add the following labels to **each of the services** in the docker-compose file
 labels:
   - "traefik.enable=true"
   - "traefik.http.routers.[name].rule=Host(`my-service.localhost`) && PathPrefix(`/`)"
+  # Optional labels - only apply if you need to.
+  # - "traefik.http.routers.[name].priority=0"
+  # - "traefik.http.services.[name].loadbalancer.server.port=3000"
 ```
 Replace the [name] placeholder with the name of the service in docker-compose, and update the rule for your setup. 
 For rule syntax see https://doc.traefik.io/traefik/routing/routers/#rule
@@ -34,7 +37,7 @@ networks:
 ```
 
 
-## For HTTPS usage (optional) - one time setup
+## For HTTPS usage (optional) - one-time setup
 
 ### Install mkcert
 ```
