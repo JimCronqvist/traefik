@@ -37,6 +37,7 @@ networks:
     external: true
 ```
 
+Note that for existing setups, you will need to recreate the services **once** for it to work, by running `docker-compose up --force-recreate`
 
 ## For HTTPS usage (optional) - one-time setup
 
