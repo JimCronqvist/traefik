@@ -21,6 +21,7 @@ Add the following labels to **each of the services** in the docker-compose file
 labels:
   - "traefik.enable=true"
   - "traefik.http.routers.[name].rule=Host(`my-service.localhost`) && PathPrefix(`/`)"
+
   # Optional labels - only apply if you need to.
   # - "traefik.http.routers.[name].priority=0"
   # - "traefik.http.services.[name].loadbalancer.server.port=3000"
