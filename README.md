@@ -11,7 +11,9 @@ Start the container:
 ```
 docker-compose up -d
 ```
-Access your application(s) at: http://localhost:3000
+Access your application(s) via **http** at: http://localhost:3000
+
+Access your application(s) via **https** at: https://localhost:3443
 
 Access the Traefik dashboard at: http://localhost:9000
 
@@ -19,15 +21,18 @@ Access the Traefik dashboard at: http://localhost:9000
 Add the following labels to **each of the services** in the docker-compose file
 ```
 labels:
-  - "traefik.enable=true"
-  - "traefik.http.routers.[name].rule=Host(`my-service.localhost`) && PathPrefix(`/`)"
+  traefik.enable: true
+  traefik.http.routers.[name].rule: Host(`my-service.localhost`) && PathPrefix(`/`)
 
   # Optional labels - only apply if you need to.
-  # - "traefik.http.routers.[name].priority=0"
-  # - "traefik.http.services.[name].loadbalancer.server.port=3000"
+  # traefik.http.routers.[name].priority: 0
+  # traefik.http.services.[name].loadbalancer.server.port: 3000
 ```
-Replace the [name] placeholder with the name of the service in docker-compose, and update the rule for your setup. 
+Replace the [name] placeholder with the name of the service in docker-compose, and update the rule for your setup.
 For rule syntax see https://doc.traefik.io/traefik/routing/routers/#rule
+
+*Note: If your reason for setting the loadbalancer server port is because no default port is exposed in the container, 
+you can also set the port in the docker-compose file under each service `expose: [3000/tcp]`, common for `node` apps.*
 
 Add the following section to your docker-compose file at the end to connect all services to the traefik network
 ```

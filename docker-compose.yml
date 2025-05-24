@@ -1,27 +1,30 @@
 # Add reusable labels in your docker-compose.yml file(s) like this:
 x-traefik-common:
-  labels:
-    - "traefik.enable=true"
-    - "traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.regex='^/([a-z]+)$'"
-    - "traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.replacement='/$1/'"
+  labels: &x-traefik-common-labels
+    traefik.enable: true
+    traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.regex: '^/([a-z]+)$'
+    traefik.http.middlewares.append-first-level-trailing-slash.replacepathregex.replacement: '/$1/'
 
 # Use by adding the following to your service:
 # labels:
-#   - "${x-traefik-common.labels}"
-#   - "traefik.http.routers.[name].middlewares=append-first-level-trailing-slash"
-#   - "traefik.http.routers.[name].rule=Host(`[host]`) && PathPrefix(`/[path]`)"
+#   <<: *x-traefik-common-labels
+#   traefik.http.routers.[name].middlewares: append-first-level-trailing-slash
+#   traefik.http.routers.[name].rule: Host(`[host]`) && PathPrefix(`/[path]`)"
 
 services:
   traefik:
     container_name: traefik
-    image: traefik:v3.2
+    image: traefik:v3.4
     restart: unless-stopped
     command:
+      #- "--log.level=DEBUG"
       - "--global.sendAnonymousUsage=false"
       - "--api.insecure=true"
       - "--providers.docker"
       - "--entrypoints.traefik.address=:9000"
-      - "--entrypoints.http.address=:3000"
+      - "--entrypoints.web.address=:3000"
+      - "--entryPoints.websecure.address=:3443"
+      - "--entrypoints.websecure.http.tls=true"
       - "--providers.docker.defaultRule=Host(`{{ .ContainerName }}.localhost`)"
       - "--providers.docker.exposedByDefault=false"
       - "--providers.file.directory=/dynamic"
@@ -34,14 +37,37 @@ services:
       - ./certs:/certs:ro
     ports:
       - "3000:3000"
+      - "3443:3443"
       - "9000:9000"
     logging:
       driver: "json-file"
       options:
         max-size: "100m"
         max-file: "3"
+    labels:
+      traefik.enable: "true"
+
+      # Redirect https://localhost:3000 -> https://localhost:3443
+      traefik.http.routers.web-https-catchall.rule: PathPrefix(`/`)
+      traefik.http.routers.web-https-catchall.entrypoints: web
+      traefik.http.routers.web-https-catchall.tls: "true"
+      traefik.http.routers.web-https-catchall.priority: "1"
+      traefik.http.routers.web-https-catchall.middlewares: redirect-to-https
+      traefik.http.middlewares.redirect-to-https.redirectscheme.scheme: https
+      traefik.http.middlewares.redirect-to-https.redirectscheme.port: "3443"
+
+      # Note: The following configuration is currently not supported due to Traefik's limitations.
+      # Note: You can't disable TLS on a single router when enabled globally as of v3.4
+      # Redirect http://localhost:3443 -> http://localhost:3000
+      # traefik.http.routers.web-http-catchall.rule: PathPrefix(`/`)
+      # traefik.http.routers.web-http-catchall.entrypoints: websecure
+      # traefik.http.routers.web-http-catchall.tls: "false"
+      # traefik.http.routers.web-http-catchall.priority: "1"
+      # traefik.http.routers.web-http-catchall.middlewares: redirect-to-http
+      # traefik.http.middlewares.redirect-to-http.redirectscheme.scheme: http
+      # traefik.http.middlewares.redirect-to-http.redirectscheme.port: "3000"
     environment:
-      - TZ=Europe/Stockholm
+      - TZ=${TZ:-Europe/Stockholm}
 
 networks:
   default:
