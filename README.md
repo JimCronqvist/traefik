@@ -11,11 +11,14 @@ Start the container:
 ```
 docker-compose up -d
 ```
-Access your application(s) via **http** at: http://localhost:3000
+Access your application(s) via **http** at: http://localhost:3000 or any custom host you are using locally.
 
-Access your application(s) via **https** at: https://localhost:3443
+Access your application(s) via **https** at: https://localhost:3443 or any custom host you are using locally.
 
 Access the Traefik dashboard at: http://localhost:9000
+
+*Recommendation: Consider using a custom host of something like 'local.domain' in order to be able to generate
+valid https certificates to use locally if required. That also has the benefit of easily enabling local DNS overrides.*
 
 ## Configure your docker-compose services to use traefik
 Add the following labels to **each of the services** in the docker-compose file
@@ -46,6 +49,9 @@ Note that for existing setups, you will need to recreate the services **once** f
 
 ## For HTTPS usage (optional) - one-time setup
 
+*Please note that this is only recommended if you are unable to generate a valid certificate for local development.
+Or if you simply don't have a need for anything else. However, the self-signed traefik cert might be enough in that case.*
+
 ### Install mkcert
 ```
 # Ubuntu
@@ -61,7 +67,7 @@ choco install -y mkcert
 ### Generate the CA and the certificate
 ```
 mkcert -install
-mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 ::1 *.localhost *.dev *.[company].dev
+mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 ::1 *.localhost local.[company].com *.local.[company].com
 ```
 
 ### Installing the root CA on other systems
