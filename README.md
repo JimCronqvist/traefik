@@ -67,7 +67,7 @@ choco install -y mkcert
 ### Generate the CA and the certificate
 ```
 mkcert -install
-mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 ::1 *.localhost local.[company].com *.local.[company].com
+mkcert -cert-file certs/cert.pem -key-file certs/key.pem localhost 127.0.0.1 ::1 "*.localhost" local.[company].com "*.local.[company].com"
 ```
 
 ### Installing the root CA on other systems
